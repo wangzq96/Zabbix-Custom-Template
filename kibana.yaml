@@ -1,0 +1,72 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: 14a30877e9714dd1a3cf53a4f15da9c6
+      template: kibana
+      name: kibana
+      description: 需要改宏
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: d60f93d8455c4934a962e4b3ec5afdc6
+          name: 'kibana status'
+          type: HTTP_AGENT
+          key: kibana.status
+          history: 2d
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.status.overall.state
+            - type: REGEX
+              parameters:
+                - green
+                - '1'
+          url: 'http://{$KIBANA_HOST}:{$KIBANA_PORT}/api/status'
+          triggers:
+            - uuid: fa9f7a6b42764e72b3c9dc3e76ce88b8
+              expression: last(/kibana/kibana.status)<>1
+              name: 'Kibana 服务异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 83a2d225c0d74c0cae95e30ec95c1598
+          name: 'kibana port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$KIBANA_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 878aee69a8834f7d927c9d30093b280c
+              expression: 'last(/kibana/net.tcp.listen[{$KIBANA_PORT}])=0'
+              name: 'kibana port异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 07d23a9a22b34434b4c5db4063e823f2
+          name: 'kibana process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[,ela,,kibana]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: b6446cc969774b2d863e01c0cf8b42df
+              expression: 'min(/kibana/proc.num[,ela,,kibana],2m)=0'
+              name: 'kibana process异常'
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: kibana
+      macros:
+        - macro: '{$KIBANA_HOST}'
+          value: localhost
+          description: kibana主机地址
+        - macro: '{$KIBANA_PORT}'
+          value: '5601'
+          description: kibana端口

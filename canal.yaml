@@ -1,0 +1,45 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: 4db4dc5069174e1598e5df0426c9c049
+      template: canal
+      name: canal
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: bd0ab4895cb749778ec9de87aa1419bf
+          name: 'canal server port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$CANAL_PORT}]'
+          history: 3d
+          trends: 3d
+          triggers:
+            - uuid: e95ae407d28349a39e1cc2b598fdeb77
+              expression: 'last(/canal/net.tcp.listen[{$CANAL_PORT}])=0'
+              name: 'canal prot 异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 22114ff55bd8428babddbdd46ac7db9e
+          name: 'canal server process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[java,,,canal-server]'
+          history: 3d
+          trends: 3d
+          triggers:
+            - uuid: ed99cc26744e40a08bbecc32d6f13e22
+              expression: 'min(/canal/proc.num[java,,,canal-server],2m)=0'
+              name: 'canal process 异常'
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: canal
+      macros:
+        - macro: '{$CANAL_PORT}'
+          value: '11112'

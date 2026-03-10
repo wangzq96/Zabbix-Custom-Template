@@ -1,0 +1,46 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: 2c083aa8c81546c0a0a82fe3d4d8afb8
+      template: logstash
+      name: logstash
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: a3c9f32360ee462eb222afcf50d4abae
+          name: 'logstash port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$LOGSTASH_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 7e977e8af298425ca455b2a1f6e89562
+              expression: 'last(/logstash/net.tcp.listen[{$LOGSTASH_PORT}])=0'
+              name: 'logstash port异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 46696c18b6594accaf939491e06424d5
+          name: 'logstash process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[java,,,logstash]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 2b01f7d4004b41e0b531b65e57b17ffe
+              expression: 'min(/logstash/proc.num[java,,,logstash],2m)=0'
+              name: 'logstash process异常'
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: logstash
+      macros:
+        - macro: '{$LOGSTASH_PORT}'
+          value: '9600'
+          description: logstash端口

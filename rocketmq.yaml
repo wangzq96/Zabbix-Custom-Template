@@ -1,0 +1,74 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: 5023ffbaa4b84882924530397aef1ee5
+      template: rocketmq
+      name: rocketmq
+      description: 需要脚本
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: 2e16d52210ce433b9283624af8fce10e
+          name: 'rocketmq broker ha port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$ROCKETMQ_BROCKER_HA}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 7600db1225f64ad1b9354d3cfcf19a6c
+              expression: 'last(/rocketmq/net.tcp.listen[{$ROCKETMQ_BROCKER_HA}])=0'
+              name: 'rocketmq HA 同步异常'
+              priority: WARNING
+        - uuid: 46c6651372164e58af6682e7945b6dfb
+          name: 'rocketmq broker tcp port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$ROCKETMQ_BROCKER_TCP}]'
+          history: 2d
+          trends: 2d
+        - uuid: a0b73d6936c6414ab4f5e9db40959b17
+          name: 'rocketmq NameServer port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$ROCKETMQ_NAMESERVER_PORT}]'
+          history: 2d
+          trends: 2d
+        - uuid: 3bdb6d5e56dd409daf07a01deb74240f
+          name: 'rocketmq broker process'
+          type: ZABBIX_ACTIVE
+          key: rocketmq.broker.status
+          history: 2d
+          trends: 2d
+        - uuid: b7a5acb157094dd4b19f8460643b87e4
+          name: 'rocketmq NameServer process'
+          type: ZABBIX_ACTIVE
+          key: rocketmq.namesrv.status
+          history: 2d
+          trends: 2d
+      tags:
+        - tag: class
+          value: rocketmq
+      macros:
+        - macro: '{$ROCKETMQ_BROCKER_HA}'
+          value: '10909'
+          description: 'Broker HA 端口是否在监听'
+        - macro: '{$ROCKETMQ_BROCKER_TCP}'
+          value: '10911'
+          description: 'Broker TCP 端口是否在监听'
+        - macro: '{$ROCKETMQ_NAMESERVER_PORT}'
+          value: '9876'
+          description: 'NameServer 端口是否在监听'
+  triggers:
+    - uuid: 64a1e84ce3454841899cd014de6d0143
+      expression: '(last(/rocketmq/rocketmq.broker.status)=0 or last(/rocketmq/net.tcp.listen[{$ROCKETMQ_BROCKER_TCP}])=0)'
+      name: 'rocketmq brocket异常'
+      priority: WARNING
+    - uuid: 63f362724ba94803a4f465f327bb85d1
+      expression: 'last(/rocketmq/rocketmq.namesrv.status)=0 or last(/rocketmq/net.tcp.listen[{$ROCKETMQ_NAMESERVER_PORT}])=0'
+      name: 'rocketmq nameserver异常'
+      priority: WARNING
+      manual_close: 'YES'

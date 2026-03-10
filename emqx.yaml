@@ -1,0 +1,55 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: 652cafcc55224b8988e84a729e0a81fb
+      template: emqx
+      name: emqx
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: b157ed5d670d46b7b866b46701dea350
+          name: 'emqx dashboard port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$EMQX_DASGVOARD}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 695fd82316b44b21803194d36829197a
+              expression: 'last(/emqx/net.tcp.listen[{$EMQX_DASGVOARD}])=0'
+              name: emqx面板端口异常
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 0dbd519c905146b9837ffec9f3a5abe3
+          name: 'emqx mqtt port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$EMQX_MQTT_PORT}]'
+          history: 2d
+          trends: 2d
+        - uuid: c85f83df313747989bb66827d4cd99f4
+          name: 'emqx process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[beam.smp]'
+          history: 2d
+          trends: 2d
+      tags:
+        - tag: class
+          value: emqx
+      macros:
+        - macro: '{$EMQX_DASGVOARD}'
+          value: '18083'
+          description: emqx面板端口
+        - macro: '{$EMQX_MQTT_PORT}'
+          value: '1883'
+          description: 'emqx mqtt端口'
+  triggers:
+    - uuid: 7f680443abc047388e4125d507c8763d
+      expression: 'last(/emqx/proc.num[beam.smp])=0 or last(/emqx/net.tcp.listen[{$EMQX_MQTT_PORT}])=0'
+      name: emqx异常
+      priority: WARNING
+      manual_close: 'YES'

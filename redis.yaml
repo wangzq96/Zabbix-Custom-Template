@@ -1,0 +1,62 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: 3f939b65fda5410ab2d7010fbb787858
+      template: redis
+      name: redis
+      description: 需要搭配脚本
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: 4da0a91fc6bf471ea84bed30367d9af5
+          name: 'redis port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$REDIS_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 75da3422ca5146deba978ba9b3593ad0
+              expression: 'last(/redis/net.tcp.listen[{$REDIS_PORT}])=0'
+              name: 'redis port异常'
+              priority: HIGH
+              manual_close: 'YES'
+        - uuid: 64fe89789aae48dbaf865345e8c1fce8
+          name: 'redis process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[redis-server]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 109039c1f9b2460f8ab733edd2e11934
+              expression: 'min(/redis/proc.num[redis-server],2m)<1'
+              name: 'redis process异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: f98974853d1a4d68b3de6d09457d246d
+          name: 'Redis 服务可用性'
+          type: ZABBIX_ACTIVE
+          key: 'redis.ping[{$REDIS_HOST},{$REDIS_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: dbe7bc1bf6cb491c97129662596d83ed
+              expression: 'last(/redis/redis.ping[{$REDIS_HOST},{$REDIS_PORT}])=0'
+              name: redis服务不可用
+              priority: HIGH
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: redis
+      macros:
+        - macro: '{$REDIS_HOST}'
+          value: localhost
+          description: redis服务器地址
+        - macro: '{$REDIS_PORT}'
+          value: '6379'
+          description: redis端口

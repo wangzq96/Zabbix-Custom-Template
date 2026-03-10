@@ -1,0 +1,120 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: f105b783c097470ab3edfad15d986fb9
+      template: elasticsearch
+      name: elasticsearch
+      description: 需要搭配脚本
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: 6f3fc7144dd146b58fe10d6551fe7999
+          name: 'es 集群中的主分片数量'
+          type: ZABBIX_ACTIVE
+          key: es.cluster.active_primary_shards
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 0a65a26eb12f4850890562ee764f3548
+              expression: 'last(/elasticsearch/es.cluster.active_primary_shards)<{$ES_PRIMARY_SHARDS_MIN}'
+              name: 主分片数异常
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 2a29213de7cb4a1288f74fb47faf1799
+          name: 'es 集群中所有活跃的分片数'
+          type: ZABBIX_ACTIVE
+          key: es.cluster.active_shards
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 15e056e4033b409eb43fa164d272e656
+              expression: 'last(/elasticsearch/es.cluster.active_shards)<{$ES_ACTIVE_SHARDS_MIN}'
+              name: 活跃分片数异常
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: f3db49b75037439e90e114ebaa0596c1
+          name: 'es cluster data node'
+          type: ZABBIX_ACTIVE
+          key: es.cluster.data_nodes
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: c986d29073764354b4fb7ce1ebe51935
+              expression: 'last(/elasticsearch/es.cluster.data_nodes)<{$ES_NODE_MIN}'
+              name: 'Cluster Data Node 数量过少'
+              priority: WARNING
+        - uuid: 3ab823eae96446dc88979111b3951a29
+          name: 'es cluster node'
+          type: ZABBIX_ACTIVE
+          key: es.cluster.nodes
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 23c1d1cc80694e66bed2516bdccf611e
+              expression: 'last(/elasticsearch/es.cluster.nodes)<{$ES_NODE_MIN}'
+              name: 'Cluster Node 数量过少'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 7bdc40ed74f549bcb9ad807929ac377c
+          name: 'es cluster status'
+          type: ZABBIX_ACTIVE
+          key: es.cluster.status
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 0bd26fb360f140e4a8c82969f12ab75d
+              expression: last(/elasticsearch/es.cluster.status)=0
+              name: 'cluster status red'
+              priority: HIGH
+              manual_close: 'YES'
+            - uuid: 1571d4ba62ab4bc58e226438a7325d56
+              expression: last(/elasticsearch/es.cluster.status)=1
+              name: 'Cluster Status YELLOW'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 3066fa1161684a93843ccae8452d712e
+          name: 'es port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$ES_HTTP_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 25e9af3d8a754a62b71786d258fbae59
+              expression: 'last(/elasticsearch/net.tcp.listen[{$ES_HTTP_PORT}])=0'
+              name: 'Elasticsearch 端口'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 4f1eca0639084699a54dfec9dc7f174c
+          name: 'es process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[java,ela,,Elasticsearch]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 42f1d7f7a2064f51adad4457cb0ec0f1
+              expression: 'min(/elasticsearch/proc.num[java,ela,,Elasticsearch],2m)<1'
+              name: 'Elasticsearch 进程'
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: elasticsearch
+      macros:
+        - macro: '{$ES_ACTIVE_SHARDS_MIN}'
+          value: '20'
+          description: 活跃分片数
+        - macro: '{$ES_HTTP_PORT}'
+          value: '9200'
+          description: es端口
+        - macro: '{$ES_NODE_MIN}'
+          value: '3'
+          description: es集群node数量
+        - macro: '{$ES_PRIMARY_SHARDS_MIN}'
+          value: '10'
+          description: 主分片数

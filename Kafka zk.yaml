@@ -1,0 +1,73 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: 48cba7caf2dd42d1a47587d3a6dd8c70
+      template: 'Kafka zk'
+      name: 'Kafka zk'
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: 6d7ced8ef3ed487aba01561f063b846a
+          name: 'kafka port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$KAFKA_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: ea31a4cdaf39423f909616f2a834424f
+              expression: 'last(/Kafka zk/net.tcp.listen[{$KAFKA_PORT}])=0'
+              name: 'kafka port异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 1868f3b061bf451cb4d9891443cb89dc
+          name: 'zookeeper port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$ZK_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 11419ed4d9fd4afb9c59ad2e97a85beb
+              expression: 'last(/Kafka zk/net.tcp.listen[{$ZK_PORT}])=0'
+              name: 'zookeeper port异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 1d9078133e3e4572beb8fbb84497feff
+          name: 'kafka process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[java,,,kafka.Kafka]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: bc463814cc9d46b19d832be9350fe185
+              expression: 'min(/Kafka zk/proc.num[java,,,kafka.Kafka],2m)=0'
+              name: 'kafka process异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: e63dd565434549f9b92edaef13e42f1c
+          name: 'zookeeper process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[java,,,QuorumPeerMain]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: ff1ff37d3a6249f59e225a28b92f98d0
+              expression: 'min(/Kafka zk/proc.num[java,,,QuorumPeerMain],2m)=0'
+              name: 'zookeeper process异常'
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: kafka
+      macros:
+        - macro: '{$KAFKA_PORT}'
+          value: '9092'
+          description: kafka端口
+        - macro: '{$ZK_PORT}'
+          value: '2181'
+          description: zookeeper端口

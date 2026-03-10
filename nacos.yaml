@@ -1,0 +1,52 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: bd9ac99848114bb29f498457e3ec0fe1
+      template: nacos
+      name: nacos
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: 7264b05807de462ba900936595ea0d32
+          name: 'nacos port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$NACOS_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: ce6bea35728e4f9091059219c017cbc2
+              expression: 'last(/nacos/net.tcp.listen[{$NACOS_PORT}])=0'
+              name: nacos端口异常
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 5b5f80758aa14507a23d340024827712
+          name: 'nacos process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[java,,,nacos]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 8d9e73195e2245f8975ab3c46b21cc97
+              expression: 'min(/nacos/proc.num[java,,,nacos],2m)<1'
+              name: nacos进程异常
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: nacos
+      macros:
+        - macro: '{$NACOS_PASS}'
+          value: nacos123456.
+          description: nacos密码
+        - macro: '{$NACOS_PORT}'
+          value: '8848'
+          description: nacos端口
+        - macro: '{$NACOS_USER}'
+          value: nacos
+          description: nacos用户名

@@ -1,0 +1,124 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: be9c2c98858140d98bbb29f90d1593f3
+      template: fastdfs
+      name: fastdfs
+      description: |
+        fastdfs监控模板
+        需要搭配脚本
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: fb5702bae92c4679a4830bdf7dc26519
+          name: fdfs_active_ount
+          type: ZABBIX_ACTIVE
+          key: fastdfs.active.count
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: c57259b0460f4eea8ab8de69e6d419ce
+              expression: 'last(/fastdfs/fastdfs.active.count)<{$FDFS_STORAGE_MIN}'
+              name: 'active count'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 70be6c9786c4460a9095df0bafbce71e
+          name: 'fdfs_storaged port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$FDFS_STORAGE_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: ec6730a47d7743df9623adfc37dd2e0c
+              expression: 'last(/fastdfs/net.tcp.listen[{$FDFS_STORAGE_PORT}])=0'
+              name: 'fdfs storage port'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 37398fc21154458caf61ba6e080fc52e
+          name: 'fdfs_trackerd prot'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$FDFS_TRACKER_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: eb5deb12f7f341a4aba5a230b7eccc86
+              expression: 'last(/fastdfs/net.tcp.listen[{$FDFS_TRACKER_PORT}])=0'
+              name: 'fdfs tracker prot'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 54b985f59b3942dc9e30f877fac34dee
+          name: 'fdfs_nginx port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$NGINX_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 8c5b56acde894ca5adfc09a40bc2e6d9
+              expression: 'last(/fastdfs/net.tcp.listen[{$NGINX_PORT}])=0'
+              name: 'fdfs nginx port'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 6683f668bccf4b70bb6b93db03742c75
+          name: 'fdfs_storaged process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[fdfs_storaged]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: b1755554db084454ba26c51417c2073e
+              expression: 'last(/fastdfs/proc.num[fdfs_storaged])<{$FDFS_STORAGE_MIN}'
+              name: 'fdfs storage process'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: bb0ed58f4e3e40d88273c8c5d15559f1
+          name: 'fdfs_trackerd process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[fdfs_trackerd]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 33062b7b35504a31bc5b5cd751af3b0b
+              expression: 'last(/fastdfs/proc.num[fdfs_trackerd])<{$FDFS_TRACKER_MIN}'
+              name: 'fdfs tracker process'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 1b152c0c7c0649b7ac7091bbd1a82ba8
+          name: 'fdfs_nginx process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[nginx]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 2fc9460d77db445abd0fff8c524b6dd3
+              expression: 'last(/fastdfs/proc.num[nginx])<{$FDFS_NGINX_MIN}'
+              name: 'fdfs nginx process'
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: fastdfs
+      macros:
+        - macro: '{$FDFS_NGINX_MIN}'
+          value: '1'
+          description: fdfs_nginx进程触发器
+        - macro: '{$FDFS_STORAGE_MIN}'
+          value: '1'
+          description: fdfs_storaged进程触发器
+        - macro: '{$FDFS_STORAGE_PORT}'
+          value: '23000'
+          description: fdfs_storaged端口
+        - macro: '{$FDFS_TRACKER_MIN}'
+          value: '1'
+          description: fdfs_trakerd进程触发器
+        - macro: '{$FDFS_TRACKER_PORT}'
+          value: '22122'
+          description: fdfs_trackerd端口
+        - macro: '{$NGINX_PORT}'
+          value: '8888'
+          description: fdfs_nginx端口

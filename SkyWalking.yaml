@@ -1,0 +1,76 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: bbdcd75b79534437a4b27c2ef1b0d586
+      template: SkyWalking
+      name: SkyWalking
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: 59a3a6d40eaa47b4b9ed605594892433
+          name: 'skywalking-oap-gRPC port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$SKYWALKING_OAPGRPC_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: b6899122f8b047998c63e3e8588d39b5
+              expression: 'min(/SkyWalking/net.tcp.listen[{$SKYWALKING_OAPGRPC_PORT}],2m)=0'
+              name: 'SkyWalking OAP gRPC端口异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 42eda953fda34f28b6b88d959228be34
+          name: 'skywalking-oap-http port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$SKYWALKING_OAPHTTP_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 18841dde74d848728d0642f946aaab5a
+              expression: 'min(/SkyWalking/net.tcp.listen[{$SKYWALKING_OAPHTTP_PORT}],2m)=0'
+              name: 'SkyWalking OAP HTTP端口异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 1b9ccfefc8a94282b2113909c32544d5
+          name: 'skywalking-ui port'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$SKYWALKING_UI_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 3c086693a7ff4b059937f5c42b8451db
+              expression: 'min(/SkyWalking/net.tcp.listen[{$SKYWALKING_UI_PORT}],2m)=0'
+              name: 'SkyWalking UI端口异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 6ecdc59143f247f58dc0205e552feb38
+          name: 'skywalking-oap-server process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[,,,"skywalking-oap-server"]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: ed66f2d10f4e4650bbb82c006983005a
+              expression: 'last(/SkyWalking/proc.num[,,,"skywalking-oap-server"])=0'
+              name: 'SkyWalking OAP 进程 Down'
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: SkyWalking
+      macros:
+        - macro: '{$SKYWALKING_OAPGRPC_PORT}'
+          value: '11800'
+          description: 'OAP gRPC 端口'
+        - macro: '{$SKYWALKING_OAPHTTP_PORT}'
+          value: '12800'
+          description: 'OAP HTTP 端口'
+        - macro: '{$SKYWALKING_UI_PORT}'
+          value: '8080'
+          description: 'UI 端口'

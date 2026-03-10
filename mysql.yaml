@@ -1,0 +1,85 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: 05c79544530a4e12b283b8e4f38abc54
+      template: mysql
+      name: mysql
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: e3b4b7d135654c09a4746cad53f7bb26
+          name: mysql主从3307端口
+          type: ZABBIX_ACTIVE
+          key: mysql.replication
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: d6a31b0a3c5e4604b24d1a3215111339
+              expression: last(/mysql/mysql.replication)<>2
+              name: mysql主从3307端口异常
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: eef63457672d41ee97455449b3b3ca28
+          name: 'mysql port 3307'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$MYSQL_PORT2}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: a0203fd83a434a749322cecf7aaca401
+              expression: 'last(/mysql/net.tcp.listen[{$MYSQL_PORT2}])=0'
+              name: 'mysql port 3307异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: df4e250f92804592b0c7f54bad9123c2
+          name: 'mysql port 3306'
+          type: ZABBIX_ACTIVE
+          key: 'net.tcp.listen[{$MYSQL_PORT}]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: 0c985e802a2a43889ba2292194b2e425
+              expression: 'last(/mysql/net.tcp.listen[{$MYSQL_PORT}])=0'
+              name: 'mysql port 3306异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 867b28fa2413435da6810443a45c2f28
+          name: 'mysql 3306 process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[,mysql,,my.cnf]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: b4b7b4b9f8dd417ca3abc6ef66eca6b1
+              expression: 'min(/mysql/proc.num[,mysql,,my.cnf],2m)=0'
+              name: 'mysql 3306 process 异常'
+              priority: WARNING
+              manual_close: 'YES'
+        - uuid: 35520bcb8e0345f1897d5657e0655ce6
+          name: 'mysql 3307 process'
+          type: ZABBIX_ACTIVE
+          key: 'proc.num[,mysql,,my3307.cnf]'
+          history: 2d
+          trends: 2d
+          triggers:
+            - uuid: f66c14441f204558b3ade2368c766dee
+              expression: 'min(/mysql/proc.num[,mysql,,my3307.cnf],2m)=0'
+              name: 'mysql 3307 process 异常'
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: mysql
+      macros:
+        - macro: '{$MYSQL_PORT}'
+          value: '3306'
+          description: 'mysql 端口'
+        - macro: '{$MYSQL_PORT2}'
+          value: '3307'
+          description: 'mysql 端口2'
