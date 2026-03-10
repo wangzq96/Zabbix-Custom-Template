@@ -1,0 +1,74 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 5b250e5b377a494e92556c1e7b119187
+      name: prod
+  templates:
+    - uuid: b16739d3744a47ae82024ca5d546e597
+      template: 'k8s pod status'
+      name: 'k8s pod status'
+      description: 需要搭配脚本
+      vendor:
+        name: wzq
+        version: '1.0'
+      groups:
+        - name: prod
+      items:
+        - uuid: a20ecb970fa44292ac06d5ad72cf6576
+          name: 'K8S 异常 Pod 数量'
+          type: DEPENDENT
+          key: k8s.pod.abnormal.count
+          delay: '0'
+          status: DISABLED
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[*]'
+          master_item:
+            key: 'k8s.pod.status[{$K8S_NAMESPACES}]'
+        - uuid: 95df301651324b248a6641d568088af4
+          name: 'K8S 异常 Pod'
+          type: DEPENDENT
+          key: k8s.pod.abnormal.list
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          status: DISABLED
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var data = JSON.parse(value).data;
+                  var result = [];
+                  for (var i = 0; i < data.length; i++) {
+                      if (data[i].PODSTATUS != "Running") {
+                          result.push(
+                              " 容器名: " + data[i].PODNAME +
+                              ", 容器状态: " + data[i].PODSTATUS +
+                              ", 命名空间: " + data[i].NAMESPACE +
+                              ", NODE: " + data[i].NODE
+                          );
+                      }
+                  }
+                  return result.join("; ");
+          master_item:
+            key: 'k8s.pod.status[{$K8S_NAMESPACES}]'
+        - uuid: 83184fb48ddf4e28bf5ab4f5a7e81676
+          name: 'K8S Pod 状态'
+          type: ZABBIX_ACTIVE
+          key: 'k8s.pod.status[{$K8S_NAMESPACES}]'
+          history: 2d
+          value_type: TEXT
+          trends: '0'
+          triggers:
+            - uuid: 0e33605491464c6997c678c24035b0b4
+              expression: 'length(last(/k8s pod status/k8s.pod.status[{$K8S_NAMESPACES}]))>12'
+              name: 'k8s pod 状态异常'
+              priority: WARNING
+              manual_close: 'YES'
+      tags:
+        - tag: class
+          value: k8s
+      macros:
+        - macro: '{$K8S_NAMESPACES}'
+          value: 'ccc,bbb,ingress-nginx'
